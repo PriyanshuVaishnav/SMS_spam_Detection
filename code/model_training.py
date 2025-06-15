@@ -1,10 +1,28 @@
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.neighbors import KNeighborsClassifier
-from xgboost import XGBClassifier
+import pandas as pd
+import xgboost as xgb
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+class ModelTraining:
+    def __init__(self, X, y):
+        self.X = X
+        self.y = y
+
+    def Xgboost_model(self, fine_tuning=False):
+        model = xgb.XGBClassifier(use_label_encoder=False, eval_metric='logloss')
+        model.fit(self.X, self.y)
+        return model
+
+# Helper function to load data safely
+def load_spam_data(path="data/spam.csv"):
+    df = pd.read_csv(path, encoding="latin-1")[["v1", "v2"]]
+    df.columns = ["label", "text"]
+    return df
+
+# Optional test block
+if __name__ == "__main__":
+    df = load_spam_data()
+    print(df.head())
 
 
 class ModelTraining:
