@@ -1,8 +1,9 @@
-\import streamlit as st
+import streamlit as st
 import pandas as pd
 import plotly.express as px
 from main import predict
-from pathlib import Path
+
+
 
 st.set_page_config(page_title="SMS Spam Detector", layout="centered")
 
