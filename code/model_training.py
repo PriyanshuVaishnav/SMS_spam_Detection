@@ -118,7 +118,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 
 # Load your dataset
-df = pd.read_csv("spam.csv", encoding="latin-1")[["v1", "v2"]]
+def load_spam_data():
+    return pd.read_csv("spam.csv", encoding="latin-1")[["v1", "v2"]]
+
+if __name__ == "__main__":
+    df = load_spam_data()
+    print(df.head())
+
 df.columns = ["label", "text"]
 df["label_num"] = df["label"].map({"ham": 0, "spam": 1})
 
