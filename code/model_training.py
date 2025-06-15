@@ -1,14 +1,10 @@
-from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.model_selection import RandomizedSearchCV
-
-import xgboost as xgb
-from xgboost import XGBClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from xgboost import XGBClassifier
 
 
 class ModelTraining:
@@ -17,143 +13,99 @@ class ModelTraining:
         self.y_train = y_train
 
     def logistic_regression_model(self):
-        print("Training the model logistic regression model:- ")
-        log_reg = LogisticRegression(max_iter=1000)
-        log_reg.fit(self.x_train, self.y_train)
-        
-        print("Completed training the model")
-        return log_reg
+        print("Training Logistic Regression model...")
+        model = LogisticRegression(max_iter=1000)
+        model.fit(self.x_train, self.y_train)
+        print("Training completed.")
+        return model
 
     def Xgboost_model(self, fine_tuning=True):
         if fine_tuning:
-            print("Started Finetuning the model:- ")
-            n_estimators = [50, 100, 150, 200]
-            max_depth = [2, 4, 6, 8]
-            learning_rate = [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]
-            subsample = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0]
-            colsample_bytree = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0]
-            min_child_weight = [1, 2, 3, 4, 5]
-            gamma = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+            print("Hyperparameter tuning for XGBoost...")
             params = {
-                "n_estimators": n_estimators,
-                "max_depth": max_depth,
-                "learning_rate": learning_rate,
-                "subsample": subsample,
-                "colsample_bytree": colsample_bytree,
-                "min_child_weight": min_child_weight,
-                "gamma": gamma,
+                "n_estimators": [50, 100, 150, 200],
+                "max_depth": [2, 4, 6, 8],
+                "learning_rate": [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3],
+                "subsample": [0.5, 0.7, 1.0],
+                "colsample_bytree": [0.5, 0.7, 1.0],
+                "min_child_weight": [1, 2, 3],
+                "gamma": [0, 0.1, 0.3],
             }
-            xgb = XGBClassifier()
-            clf = RandomizedSearchCV(xgb, params, cv=5, n_jobs=-1)
-            clf.fit(self.x_train, self.y_train)
-            print("Finished Hyperparameter search")
-            return clf
+            model = RandomizedSearchCV(XGBClassifier(), params, cv=5, n_jobs=-1)
+            model.fit(self.x_train, self.y_train)
+            print("XGBoost tuning complete.")
+            return model
         else:
-            print("Started training the model:- ")
-            xgb = XGBClassifier(
-                learning_rate=0.3,
-                max_delta_step=0,
-                max_depth=8,
-                min_child_weight=1,
-                n_estimators=50,
-                n_jobs=16,
-                num_parallel_tree=1,
-                random_state=0,
-                reg_alpha=0,
-                reg_lambda=1,
-                scale_pos_weight=1,
-                subsample=1.0,
-                tree_method="exact",
-                validate_parameters=1,
-                verbosity=None,
-            )
-            xgb.fit(self.x_train, self.y_train)
-            print("Completed training the model")
-            return xgb
+            print("Training XGBoost model...")
+            model = XGBClassifier(n_estimators=100, max_depth=6, learning_rate=0.1)
+            model.fit(self.x_train, self.y_train)
+            print("XGBoost training completed.")
+            return model
 
-
-    def svm_model(self, fine_tuning=True): 
-        if fine_tuning:  
-            print("Started Finetuning the model:- ")
-            C = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-            gamma = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    def svm_model(self, fine_tuning=True):
+        if fine_tuning:
+            print("Hyperparameter tuning for SVM...")
             params = {
-                "C": C,
-                "gamma": gamma,
+                "C": [0.1, 0.5, 1.0],
+                "gamma": ['scale', 'auto'],
+                "kernel": ['rbf', 'linear'],
             }
-            svm = SVC()
-            clf = RandomizedSearchCV(svm, params, cv=5, n_jobs=-1)
-            clf.fit(self.x_train, self.y_train)
-            print("Finished Hyperparameter search")
-            return clf
+            model = RandomizedSearchCV(SVC(), params, cv=5, n_jobs=-1)
+            model.fit(self.x_train, self.y_train)
+            print("SVM tuning complete.")
+            return model
         else:
-            print("Started training the model:- ")
-            svm = SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0,
-                decision_function_shape='ovr', degree=3, gamma='auto', kernel='rbf',
-                max_iter=-1, probability=False, random_state=None, shrinking=True,
-                tol=0.001, verbose=False)
-            svm.fit(self.x_train, self.y_train)
-            print("Completed training the model")
-            return svm 
+            print("Training SVM model...")
+            model = SVC(C=1.0, gamma='scale', kernel='rbf')
+            model.fit(self.x_train, self.y_train)
+            print("SVM training completed.")
+            return model
 
-    def random_forest_model(self, finetuning=True):
-        if finetuning: 
-            print("Started Finetuning the model:- ")
-            n_estimators = [50, 100, 150, 200]
-            max_depth = [2, 4, 6, 8]
-            learning_rate = [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]
-            subsample = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0]
-            colsample_bytree = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0]
-            min_child_weight = [1, 2, 3, 4, 5]
-            gamma = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    def random_forest_model(self, fine_tuning=True):
+        if fine_tuning:
+            print("Hyperparameter tuning for Random Forest...")
             params = {
-                "n_estimators": n_estimators,
-                "max_depth": max_depth,
-                "learning_rate": learning_rate,
-                "subsample": subsample,
-                "colsample_bytree": colsample_bytree,
-                "min_child_weight": min_child_weight,
-                "gamma": gamma,
+                "n_estimators": [50, 100, 200],
+                "max_depth": [None, 10, 20, 30],
+                "min_samples_split": [2, 5, 10],
+                "min_samples_leaf": [1, 2, 4],
+                "bootstrap": [True, False],
             }
-            rf = RandomForestClassifier()
-            clf = RandomizedSearchCV(rf, params, cv=5, n_jobs=-1)
-            clf.fit(self.x_train, self.y_train)
-            print("Finished Hyperparameter search")
-            return clf
+            model = RandomizedSearchCV(RandomForestClassifier(), params, cv=5, n_jobs=-1)
+            model.fit(self.x_train, self.y_train)
+            print("Random Forest tuning complete.")
+            return model
+        else:
+            print("Training Random Forest model...")
+            model = RandomForestClassifier(n_estimators=100)
+            model.fit(self.x_train, self.y_train)
+            print("Random Forest training completed.")
+            return model
 
     def Naive_Bayes(self):
-        print("Training the model Naive Bayes:- ")
-        nb_model = MultinomialNB()
-        nb_model.fit(self.x_train, self.y_train)
-        print("Completed training the model")
-        return nb_model
+        print("Training Naive Bayes model...")
+        model = MultinomialNB()
+        model.fit(self.x_train, self.y_train)
+        print("Naive Bayes training completed.")
+        return model
 
-    def KNN_model(self, finetuning = True): 
-        if finetuning: 
-            print("Started Finetuning the model:- ")
-            n_neighbors = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            weights = ['uniform', 'distance']
-            algorithm = ['auto', 'ball_tree', 'kd_tree', 'brute']
-            leaf_size = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            p = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    def KNN_model(self, fine_tuning=True):
+        if fine_tuning:
+            print("Hyperparameter tuning for KNN...")
             params = {
-                "n_neighbors": n_neighbors,
-                "weights": weights,
-                "algorithm": algorithm,
-                "leaf_size": leaf_size,
-                "p": p,
+                "n_neighbors": [3, 5, 7, 9],
+                "weights": ['uniform', 'distance'],
+                "algorithm": ['auto', 'ball_tree', 'kd_tree'],
+                "leaf_size": [10, 20, 30],
+                "p": [1, 2],
             }
-            knn = KNeighborsClassifier()
-            clf = RandomizedSearchCV(knn, params, cv=5, n_jobs=-1)
-            clf.fit(self.x_train, self.y_train)
-            print("Finished Hyperparameter search")
-            return clf
+            model = RandomizedSearchCV(KNeighborsClassifier(), params, cv=5, n_jobs=-1)
+            model.fit(self.x_train, self.y_train)
+            print("KNN tuning complete.")
+            return model
         else:
-            print("Started training the model:- ")
-            knn = KNeighborsClassifier(n_neighbors=5, weights='uniform', algorithm='auto', leaf_size=30, p=2)
-            knn.fit(self.x_train, self.y_train)
-            print("Completed training the model")
-            return knn
-
-
-
+            print("Training KNN model...")
+            model = KNeighborsClassifier(n_neighbors=5)
+            model.fit(self.x_train, self.y_train)
+            print("KNN training completed.")
+            return model
