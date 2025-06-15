@@ -1,23 +1,25 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.express as px
 from main import predict
+from pathlib import Path
 
-st.write(
-    """ 
+st.set_page_config(page_title="SMS Spam Detector", layout="centered")
 
-# SMS Spam Detection Application 
+# ------------------ Header ------------------
+st.markdown(
+    """
+    # 📩 SMS Spam Detection Application
 
-You can use this tool, given an sms message, to detect if it is a spam or not.  
-"""
+    This tool helps you detect whether an SMS message is **spam** 🚫 or **ham** ✅ (not spam).  
+    Just paste your message below and click **"Classify"**.
+    """
 )
 
-message = st.text_area("Enter a message to be classified")
+# ------------------ Text Input ------------------
+message = st.text_area("✉️ Enter an SMS message", height=150)
 
-if st.button("Classify"):
-    result = predict(message)
-    if result == 1:
-        st.success("The message is a spam")
-    else:
-        st.success("The message is ham")
+# ------------------ Prediction Button ------------------
+if st.button("🔍 Classify Message"):
+    if not message.strip():
+        st.warning("Please en
